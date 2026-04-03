@@ -1,66 +1,89 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-<link rel="stylesheet" type="text/css" href="webjars/bootstrap/4.3.1/css/bootstrap.min.css" />
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="https://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
 
 <head>
-	<meta charset="utf-8">
-	<title>Liste des Livres</title>
+    <meta charset="utf-8">
+    <title>Liste des Livres</title>
+
+    <link rel="stylesheet" type="text/css" href="/webjars/bootstrap/4.3.1/css/bootstrap.min.css" />
 </head>
 
 <body>
-	<div th:replace="template"></div>
-	<div class="container">
-		<div class="card">
-			<div class="card-header">
-				Liste des Livres
-			</div>
-			<div class="card-body">
-				<table class="table table-striped">
-					<tr>
-						<th>ID</th>
-						<th>Nom Livres</th>
-						<th>Auteur</th>
-						<th>Prix</th>
-						<th>Date de publication</th>
-						<th>Email</th>
-						<th>Théme</th>
-						<th>Actions</th>
-					</tr>
-					<tr th:each="l:${livres.content}">
-						<td th:text="${l.idLivre}"></td>
-						<td th:text="${l.nomLivre}"></td>
-						<td th:text="${l.auteur}"></td>
-						<td th:text="${l.prixLivre}"></td>
-						<td th:text="${l.Datedepublication}"></td>
-						<td th:text="${l.email}"></td>
-						<td th:if= "${!#strings.isEmpty(l.theme)}" th:text="${l.theme.nomThe}"></td>
-						<td th:if= "${#strings.isEmpty(l.theme)}" th:text="${'Pas de theme'}"></td>
-						<td>
-						    <!-- Bouton Supprimer -->
-						    <a class="btn btn-danger" 
-						       onclick="return confirm('Etes-vous sûr ?')" 
-						       th:href="@{/supprimerLivre(id=${l.idLivre}, page=${currentPage}, size=${size})}">
-						        Supprimer
-						    </a>
 
-						    <!-- Bouton Editer -->
-						    <a class="btn btn-success" 
-						       th:href="@{/modifierLivre(id=${l.idLivre}, page=${currentPage}, size=${size})}">
-						        Editer
-						    </a>
-						</td>
-					</tr>
-				</table>
-				<ul class="nav nav-pills">
-					<li th:each="page,status:${pages}">
-						<a th:class="${status.index==currentPage?'btn btn-primary':'btn' }"
-							th:href="@{ ListeLivres(page=${status.index}, size=${size} ) }"
-							th:text="${status.index }"></a>
-					</li>
-				</ul>
-			</div>
-		</div>
-	</div>
+<div th:replace="template"></div>
+
+<div class="container">
+    <div class="card">
+        <div class="card-header">
+            Liste des Livres
+        </div>
+
+        <div class="card-body">
+
+            <table class="table table-striped">
+
+                <tr>
+                    <th>ID</th>
+                    <th>Nom Livres</th>
+                    <th>Auteur</th>
+                    <th>Prix</th>
+                    <th>Date de publication</th>
+                    <th>Email</th>
+                    <th>Théme</th>
+                    <th sec:authorize="hasAuthority('ADMIN')">Actions</th>                
+				</tr>
+
+                <tr th:each="l:${livres.content}">
+
+                    <td th:text="${l.idLivre}"></td>
+                    <td th:text="${l.nomLivre}"></td>
+                    <td th:text="${l.auteur}"></td>
+                    <td th:text="${l.prixLivre}"></td>
+                    <td th:text="${l.Datedepublication}"></td>
+                    <td th:text="${l.email}"></td>
+
+                    <!-- Theme -->
+                    <td th:text="${l.theme != null ? l.theme.nomThe : 'Pas de theme'}"></td>
+
+                    <!-- Actions -->
+                    <td>
+
+                        <!-- Supprimer -->
+                        <a sec:authorize="hasAuthority('ADMIN')"
+                           class="btn btn-danger"
+                           onclick="return confirm('Etes-vous sûr ?')"
+                           th:href="@{/supprimerLivre(id=${l.idLivre}, page=${currentPage}, size=${size})}">
+                           Supprimer
+                        </a>
+
+                        <!-- Editer -->
+                        <a sec:authorize="hasAuthority('ADMIN')"
+                           class="btn btn-success"
+                           th:href="@{/modifierLivre(id=${l.idLivre}, page=${currentPage}, size=${size})}">
+                           Editer
+                        </a>
+
+                    </td>
+
+                </tr>
+
+            </table>
+
+            <!-- Pagination -->
+            <ul class="nav nav-pills">
+                <li th:each="page,status:${pages}">
+                    <a th:class="${status.index==currentPage?'btn btn-primary':'btn'}"
+                       th:href="@{/ListeLivres(page=${status.index}, size=${size})}"
+                       th:text="${status.index}">
+                    </a>
+                </li>
+            </ul>
+
+        </div>
+    </div>
+</div>
+
 </body>
-
 </html>

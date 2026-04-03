@@ -1,10 +1,5 @@
 package com.rimeh.livres.controllers;
 
-import java.text.ParseException;
-
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,145 +7,125 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-//import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.rimeh.livres.entities.Livre;
+import com.rimeh.livres.LivreDTO;
 import com.rimeh.livres.entities.Theme;
 import com.rimeh.livres.service.LivreService;
 
 import jakarta.validation.Valid;
 
-//@RestController
 @Controller
 public class LivreController {
 
-	/*
-	 * @RequestMapping("/myView") public String myView() { return "myView"; }
-	 */
+    @Autowired
+    LivreService livreService;
 
-	@Autowired
-	LivreService livreService;
+    @GetMapping("/")
+    public String welcome() {
+        return "index";
+    }
 
-	/*
-	 * @RequestMapping("/ListeLivres") public String listeLivres(ModelMap modelMap)
-	 * { List<Livre> livs = livreService.getAllLivres();
-	 * modelMap.addAttribute("livres", livs); return "listeLivres"; }
-	 */
-	@RequestMapping("/ListeLivres")
-	public String listeLivres(ModelMap modelMap, @RequestParam(name = "page", defaultValue = "0") int page,
-			@RequestParam(name = "size", defaultValue = "2") int size) {
-		Page<Livre> livs = livreService.getAllLivresParPage(page, size);
-		modelMap.addAttribute("livres", livs);
-		modelMap.addAttribute("pages", new int[livs.getTotalPages()]);
-		modelMap.addAttribute("currentPage", page);
-		return "listeLivres";
-	}
+    @ModelAttribute("themes")
+    public List<Theme> populateThemes() {
+        return livreService.getAllThemes();
+    }
 
-	/*@RequestMapping("/showCreate")
-	public String showCreate() {
-		return "createLivre";
-	}*/
-	@RequestMapping("/showCreate")
-	public String showCreate(ModelMap modelMap)
-	{
-	    List<Theme> themes = livreService.getAllThemes();
-	    modelMap.addAttribute("livre", new Livre());
-	    modelMap.addAttribute("mode", "new");
-	    modelMap.addAttribute("themes", themes);
-	    return "formLivre";
-	}
+    // ================= LIST =================
+    @RequestMapping("/ListeLivres")
+    public String listeLivres(ModelMap modelMap,
+                             @RequestParam(name = "page", defaultValue = "0") int page,
+                             @RequestParam(name = "size", defaultValue = "2") int size) {
 
-	/*@RequestMapping("/saveLivre")
-	public String saveLivre(@ModelAttribute("livre") Livre livre, @RequestParam("date") String date, ModelMap modelMap)
-			throws ParseException {
-		// conversion de la date
-		SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd");
-		Date datedepublication = dateformat.parse(String.valueOf(date));
-		livre.setDatedepublication(datedepublication);
-		Livre saveLivre = livreService.saveLivre(livre);
-		String msg = "livre enregistré avec Id " + saveLivre.getIdLivre();
-		modelMap.addAttribute("msg", msg);
-		return "createLivre";
-	}*/
-	/*@RequestMapping("/saveLivre")
-	public String saveLivre(@ModelAttribute("livre") Livre livre) {
-		livreService.saveLivre(livre);
-		return "createLivre";
-	}*/
-	@RequestMapping("/saveLivre")
-	public String saveLivre(
-	        @Valid Livre livre, 
-	        BindingResult bindingResult,
-	        @RequestParam(name="page", defaultValue = "0") int page,
-	        @RequestParam(name="size", defaultValue = "2") int size) {
+        Page<com.rimeh.livres.entities.Livre> livs = livreService.getAllLivresParPage(page, size);
 
-	    int currentPage;
-	    boolean isNew = false;
+        modelMap.addAttribute("livres", livs);
+        modelMap.addAttribute("pages", new int[livs.getTotalPages()]);
+        modelMap.addAttribute("currentPage", page);
 
-	    if (bindingResult.hasErrors()) {
-	        return "formLivre"; 
-	    }
-	    if (livre.getIdLivre() == null) {
-	        isNew = true;
-	    }
-	    livreService.saveLivre(livre);
-	    if (isNew) {
-	        Page<Livre> livres = livreService.getAllLivresParPage(page, size);
-	        currentPage = livres.getTotalPages() - 1; 
-	    } else { // si modification
-	        currentPage = page;
-	    }
-	    return "redirect:/ListeLivres?page=" + currentPage + "&size=" + size;
-	}
+        return "listeLivres";
+    }
 
-	/*
-	 * @RequestMapping("/supprimerLivre") public String
-	 * supprimerLivre(@RequestParam("id") Long id, ModelMap modelMap) {
-	 * livreService.deleteLivreById(id); List<Livre> livs =
-	 * livreService.getAllLivres(); modelMap.addAttribute("livres", livs); return
-	 * "listeLivres"; }
-	 */
-	@RequestMapping("/supprimerLivre")
-	public String supprimerLivre(@RequestParam("id") Long id, ModelMap modelMap,
-			@RequestParam(name = "page", defaultValue = "0") int page,
-			@RequestParam(name = "size", defaultValue = "2") int size) {
-		livreService.deleteLivreById(id);
-		Page<Livre> livs = livreService.getAllLivresParPage(page, size);
-		modelMap.addAttribute("livres", livs);
-		modelMap.addAttribute("pages", new int[livs.getTotalPages()]);
-		modelMap.addAttribute("currentPage", page);
-		modelMap.addAttribute("size", size);
-		return "listeLivres";
-	}
+    // ================= CREATE =================
+    @RequestMapping("/showCreate")
+    public String showCreate(ModelMap modelMap) {
+        modelMap.addAttribute("livre", new LivreDTO());
+        modelMap.addAttribute("mode", "new");
+        return "formLivre";
+    }
 
-	@RequestMapping("/modifierLivre")
-	public String editerLivre(@RequestParam("id") Long id, ModelMap modelMap,
-			@RequestParam(name = "page", defaultValue = "0") int page,
-			@RequestParam(name = "size", defaultValue = "2") int size)
-	{
-	    Livre l = livreService.getLivre(id);
-	    List<Theme> themes = livreService.getAllThemes();
+    @RequestMapping("/saveLivre")
+    public String saveLivre(
+            @Valid @ModelAttribute("livre") LivreDTO livre,
+            BindingResult bindingResult,
+            ModelMap modelMap,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "2") int size) {
 
-	    modelMap.addAttribute("livre", l);
-	    modelMap.addAttribute("mode", "edit");
-	    modelMap.addAttribute("themes", themes);
-	    modelMap.addAttribute("page", page);
-	    modelMap.addAttribute("size", size);
-	    return "formLivre";
-	}
+        if (bindingResult.hasErrors()) {
+            modelMap.addAttribute("mode", "new");
+            return "formLivre";
+        }
 
-	@RequestMapping("/updateLivre")
-	public String updateLivre(@Valid @ModelAttribute("livre") Livre livre,
-	                          BindingResult bindingResult) {
-	    if (bindingResult.hasErrors()) {
-	        return "formLivre";
-	    }
-	    livreService.updateLivre(livre);
-	    
-	    return "redirect:/ListeLivres";
-	}
+        boolean isNew = (livre.getIdLivre() == null);
 
+        livreService.saveLivre(livre);
+
+        int currentPage = page;
+        if (isNew) {
+            Page<com.rimeh.livres.entities.Livre> livres = livreService.getAllLivresParPage(page, size);
+            currentPage = livres.getTotalPages() - 1;
+        }
+
+        return "redirect:/ListeLivres?page=" + currentPage + "&size=" + size;
+    }
+
+    // ================= DELETE =================
+    @RequestMapping("/supprimerLivre")
+    public String supprimerLivre(@RequestParam("id") Long id,
+                                 @RequestParam(name = "page", defaultValue = "0") int page,
+                                 @RequestParam(name = "size", defaultValue = "2") int size) {
+
+        livreService.deleteLivreById(id);
+
+        return "redirect:/ListeLivres?page=" + page + "&size=" + size;
+    }
+
+    // ================= EDIT =================
+    @RequestMapping("/modifierLivre")
+    public String editerLivre(@RequestParam("id") Long id,
+                              ModelMap modelMap,
+                              @RequestParam(name = "page", defaultValue = "0") int page,
+                              @RequestParam(name = "size", defaultValue = "2") int size) {
+
+        LivreDTO l = livreService.getLivre(id);
+
+        modelMap.addAttribute("livre", l);
+        modelMap.addAttribute("mode", "edit");
+        modelMap.addAttribute("page", page);
+        modelMap.addAttribute("size", size);
+
+        return "formLivre";
+    }
+
+    // ================= UPDATE =================
+    @RequestMapping("/updateLivre")
+    public String updateLivre(
+            @Valid @ModelAttribute("livre") LivreDTO livre,
+            BindingResult bindingResult,
+            ModelMap modelMap,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "2") int size) {
+
+        if (bindingResult.hasErrors()) {
+            modelMap.addAttribute("mode", "edit");
+            modelMap.addAttribute("page", page);
+            modelMap.addAttribute("size", size);
+            return "formLivre";
+        }
+
+        livreService.updateLivre(livre);
+
+        return "redirect:/ListeLivres?page=" + page + "&size=" + size;
+    }
 }

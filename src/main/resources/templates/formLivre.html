@@ -16,78 +16,59 @@
     <div class="card">
 
         <!-- En-tête selon le mode -->
-        <div class="card-header" th:if="${mode=='new'}">Ajout des Livres</div>
-        <div class="card-header" th:if="${mode=='edit'}">Modification des Livres</div>
+        <div class="card-header" th:text="${mode=='new'} ? 'Ajout des Livres' : 'Modification des Livres'"></div>
 
         <div class="card-body">
 
-            <form th:action="@{/saveLivre}" method="post">
-				<input hidden name="page" class="form-control" th:value="${page}" />
-				<input hidden name="size" class="form-control" th:value="${size}" />
-                <!-- ID caché pour l'édition -->
-                <div class="form-group">
-                    <input type="hidden" name="idLivre" class="form-control" th:value="${livre.idLivre}" />
-                </div>
+            <form th:action="@{${mode=='new' ? '/saveLivre' : '/updateLivre'}}" method="post">
+                <input type="hidden" name="page" th:value="${page}" />
+                <input type="hidden" name="size" th:value="${size}" />
+                <input type="hidden" name="idLivre" th:value="${livre.idLivre}" />
 
-                <!-- Nom Livre -->
                 <div class="form-group">
-                    <label class="control-label">Nom Livre :</label>
+                    <label>Nom Livre :</label>
                     <input type="text" name="nomLivre" class="form-control" th:value="${livre.nomLivre}" />
                     <span th:errors="${livre.nomLivre}" class="text-danger"></span>
                 </div>
 
-                <!-- Auteur -->
                 <div class="form-group">
-                    <label class="control-label">Auteur :</label>
+                    <label>Auteur :</label>
                     <input type="text" name="auteur" class="form-control" th:value="${livre.auteur}" />
                     <span th:errors="${livre.auteur}" class="text-danger"></span>
                 </div>
 
-                <!-- Prix Livre -->
                 <div class="form-group">
-                    <label class="control-label">Prix Livre :</label>
+                    <label>Prix :</label>
                     <input type="text" name="prixLivre" class="form-control" th:value="${livre.prixLivre}" />
                     <span th:errors="${livre.prixLivre}" class="text-danger"></span>
                 </div>
 
-                <!-- Date de publication -->
                 <div class="form-group">
-                    <label class="control-label">Date de publication :</label>
+                    <label>Date de publication :</label>
                     <input type="date" name="Datedepublication" class="form-control" 
-                           th:value="${#dates.format(livre.Datedepublication, 'yyyy-MM-dd')}" />
+                           th:value="${livre.Datedepublication != null} ? ${#dates.format(livre.Datedepublication,'yyyy-MM-dd')} : ''" />
                     <span th:errors="${livre.Datedepublication}" class="text-danger"></span>
                 </div>
 
-                <!-- Email -->
                 <div class="form-group">
-                    <label class="control-label">Email :</label>
+                    <label>Email :</label>
                     <input type="email" name="email" class="form-control" th:value="${livre.email}" />
                     <span th:errors="${livre.email}" class="text-danger"></span>
                 </div>
-				<div class="form-group">
-				    <label class="control-label">Thème :</label>
 
-				    <!-- si le livre a déjà un thème (édition) -->
-				    <select name="theme.idThe" class="form-control" th:if="${!#strings.isEmpty(livre.theme)}">
-				        <option th:each="t : ${themes}" 
-				                th:value="${t.idThe}" 
-				                th:text="${t.nomThe}" 
-				                th:selected="${ t.idThe == livre.theme.idThe }">
-				        </option>
-				    </select>
+                <div class="form-group">
+                    <label>Thème :</label>
+                    <select name="theme.idThe" class="form-control">
+                        <option th:each="t : ${themes}" 
+                                th:value="${t.idThe}" 
+                                th:text="${t.nomThe}" 
+                                th:selected="${livre.theme != null} ? ${t.idThe == livre.theme.idThe} : false">
+                        </option>
+                    </select>
+                </div>
 
-				    <!-- si le livre n'a pas encore de thème (ajout ou thème null) -->
-				    <select name="theme.idThe" class="form-control" th:if="${#strings.isEmpty(livre.theme)}">
-				        <option th:each="t : ${themes}" 
-				                th:value="${t.idThe}" 
-				                th:text="${t.nomThe}">
-				        </option>
-				    </select>
-				</div>
-
-                <!-- Bouton selon le mode -->
                 <div>
-                    <button type="submit" class="btn btn-primary" 
+                    <button type="submit" class="btn btn-primary"
                             th:text="${mode=='new'} ? 'Ajouter' : 'Modifier'"></button>
                 </div>
 
